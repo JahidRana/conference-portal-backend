@@ -5,7 +5,7 @@ const cloudinary = require('../config/cloudinaryConfig');
 const CreatedCommittee = require("../models/createCommittee.model");
 const Speaker = require("../models/UniversityStaffSchema .model");
 const ConferenceDates = require("../models/ConferenceDate.model");
-
+const SubmissionGuideline=require("../models/sumissionForm.model")
 exports.CreateAdminController = async (req, res, next) => {
   try {
     const email = req.body.email;
@@ -423,5 +423,41 @@ exports.getupdateConferenceDates = async (req, res) => {
   } catch (error) {
     console.error("Error fetching committees:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+exports.updateSubmissioninfo = async (req, res) => {
+  const { guideline, researchAreas } = req.body;
+
+  try {
+      const result = await SubmissionGuideline.updateOne(
+          {}, // Empty filter object to update the first found document or create a new one
+          { guideline, researchAreas }, // Replace with new data
+          { upsert: true, runValidators: true } // Upsert: create if not exist
+      );
+
+      if (result.upsertedCount > 0) {
+          return res.status(201).send({ message: 'Submission Guideline created successfully' });
+      }
+
+      res.status(200).send({ message: 'Submission Guideline updated successfully' });
+  } catch (error) {
+      console.error('Error details:', error); // Log the full error
+      res.status(500).send({ message: 'Server Error', error: error.message });
+  }
+};
+
+exports.getupdateSubmissioninfo=async (req, res) => {
+  try {
+      const submissionGuideline = await SubmissionGuideline.find(); // or .find() if you expect multiple documents
+     
+      if (!submissionGuideline) {
+          return res.status(404).send({ message: 'No submission guideline found' });
+      }
+      res.status(200).send(submissionGuideline);
+  } catch (error) {
+      res.status(500).send({ message: 'Server Error', error: error.message });
   }
 };

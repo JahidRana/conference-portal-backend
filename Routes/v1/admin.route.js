@@ -62,8 +62,6 @@ router.route("/speakers").get(adminController.getSpeaker)
 // Use the multer middleware to handle file uploads
 router.post('/speaker', upload.single('picture'), adminController.createSpeakerController);
 
-
-
 //Remove Speaker route 
 router.route("/remove/speaker/:id").delete(adminController.removeSpeakerController);
 
@@ -78,6 +76,14 @@ router.route("/home-content").patch(adminController.HomePageContentController);
 router.route('/update-date').put(adminController.updateConferenceDates);
 
 router.route('/get-update-date').get(adminController.getupdateConferenceDates);
+
+//submission route start here
+
+router.route('/update-submission').put(adminController.updateSubmissioninfo);
+router.route('/get-update-submission').get(adminController.getupdateSubmissioninfo);
+
+//submission route end here
+
 
 router.use((err, req, res, next) => {
     console.error(err.stack);
