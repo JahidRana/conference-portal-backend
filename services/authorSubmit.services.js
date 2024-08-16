@@ -1,8 +1,16 @@
 const authorSubmitModel = require("../models/authorSubmit.model")
 
 exports.createAuthorSubmitServices = async (submitInformation) => {
-    const submitInfo = await authorSubmitModel.create(submitInformation);
-    console.log('from AuthorServices-------------------',submitInfo);
+    // Create a new instance of the model
+    const submitInfo = new authorSubmitModel(submitInformation);
+    
+    // Perform any additional operations on submitInfo if needed
+    // Example: submitInfo.someField = 'someValue';
+    
+    // Save the document to the database
+    await submitInfo.save();
+    
+    console.log('from AuthorServices-------------------', submitInfo);
     return submitInfo;
 };
 exports.getAuthorSubmitServices = async (queries) => {

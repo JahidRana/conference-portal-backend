@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
-const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('./config/cloudinaryConfig');
+// const multer = require('multer');
+// const { CloudinaryStorage } = require('multer-storage-cloudinary');
+// const cloudinary = require('./config/cloudinaryConfig');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
@@ -13,17 +13,17 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Cloudinary storage configuration
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'speakers',
-    format: async (req, file) => file.originalname.split('.').pop(),
-    public_id: (req, file) => `${Date.now()}-${file.originalname}`,
-  },
-});
+// const storage = new CloudinaryStorage({
+//   cloudinary: cloudinary,
+//   params: {
+//     folder: 'speakers',
+//     format: async (req, file) => file.originalname.split('.').pop(),
+//     public_id: (req, file) => `${Date.now()}-${file.originalname}`,
+//   },
+// });
 
-// Multer setup with Cloudinary storage
-const upload = multer({ storage: storage });
+// // Multer setup with Cloudinary storage
+// const upload = multer({ storage: storage });
 
 
 // Routes setup
@@ -38,7 +38,7 @@ const trackRoute = require('./Routes/v1/track.route');
 
 // Set up routes using multer with Cloudinary storage
 app.use('/api/v1/contact', contactRoute);
-app.use('/api/v1/submit', upload.single('fileURL'), authorRoute); // Route for submitting files
+app.use('/api/v1/submit', authorRoute); // Updated route file
 app.use('/api/v1/admin', adminRoute);
 app.use('/api/v1/reviewer', reviewerRoute);
 app.use('/api/v1/create-committee', committeeRoute);
