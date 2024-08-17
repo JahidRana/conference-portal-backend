@@ -26,8 +26,8 @@ exports.CreateAuthorSubmitController = async (req, res, next) => {
       // Prepare submission information
       const submitInformation = {
         ...req.body,
-        fileURL: cloudinaryResponse.secure_url, // URL of the uploaded file
-        public_id: cloudinaryResponse.public_id // Public ID for future reference
+        cloudinaryURL: cloudinaryResponse.secure_url, // URL of the uploaded file
+        cloudinaryPublicID: cloudinaryResponse.public_id // Public ID for future reference
       };
   
       console.log(submitInformation);
