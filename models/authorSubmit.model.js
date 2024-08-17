@@ -58,7 +58,8 @@ const AuthorSubmit = mongoose.Schema({
     street: String,
     line1: String,
     line2: String,
-  }]
+  }],
+  accepted: { type: Boolean, default: false },
 }, {
   timestamps: true
 });

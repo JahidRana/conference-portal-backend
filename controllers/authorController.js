@@ -1,6 +1,7 @@
 const cloudinary = require('../config/cloudinaryConfig');
 const SubmissionGuideline=require("../models/sumissionForm.model")
 const authorSubmit=require("../models/authorSubmit.model")
+const AcceptedPaper = require('../models/acceptePaperschema.model'); // New model
 const authorSubmitServices = require("../services/authorSubmit.services");
 
 exports.CreateAuthorSubmitController = async (req, res, next) => {
@@ -30,40 +31,42 @@ exports.CreateAuthorSubmitController = async (req, res, next) => {
       };
   
       console.log(submitInformation);
-      // Check for existing record (assuming `email` is a part of submitInformation)
+        // Extract email from submitInformation
+    const email = submitInformation.author?.[0]?.email;
+    console.log("From submit info mail:", email);
 
-       // Extract email from submitInformation
-    const { email } = submitInformation;
-    
-      const existingRecord = await authorSubmit.findOne({ email });
-      if (existingRecord) {
-        return res.status(400).json({
-          status: "Fail",
-          message: "Duplicate entry found",
-        });
-      }
-  
-      // Save submission to the database
-      const registeredInfo = await authorSubmitServices.createAuthorSubmitServices(submitInformation);
-  
-      res.status(200).json({
-        status: "success",
-        message: "Submission completed successfully",
-        data: registeredInfo
-      });
-    } catch (err) {
-      console.error('Error in CreateAuthorSubmitController:', err);
-      res.status(400).json({
+    // Check for existing record with the same email
+    const existingRecord = await authorSubmit.findOne({ "author.email": email });
+    console.log("existing record:", existingRecord);
+
+    if (existingRecord) {
+      return res.status(400).json({
         status: "Fail",
-        message: "Submission failed",
-        error: {
-          message: err.message,
-          name: err.name,
-          http_code: err.status || 400
-        },
+        message: "Duplicate entry found",
       });
     }
-  };
+
+    // Save submission to the database
+    const registeredInfo = await authorSubmitServices.createAuthorSubmitServices(submitInformation);
+
+    res.status(200).json({
+      status: "success",
+      message: "Submission completed successfully",
+      data: registeredInfo,
+    });
+  } catch (err) {
+    console.error('Error in CreateAuthorSubmitController:', err);
+    res.status(400).json({
+      status: "Fail",
+      message: "Submission failed",
+      error: {
+        message: err.message,
+        name: err.name,
+        http_code: err.status || 400,
+      },
+    });
+  }
+};
 //GetResearchAreasController
 
 exports.GetResearchAreasController = async (req, res, next) => {
@@ -107,12 +110,20 @@ exports.GetAuthorSubmitController = async (req, res, next) => {
     }
 };
 exports.GetAuthorSubmitByEmailController = async (req, res, next) => {
-    console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx",req.query);
+   
     const {page=1, limit=8, email} =req.query;
     const skip = (page-1)*parseInt(limit);
-    queries.skip = skip;
-    queries.limit =limit;
-    queries.email =email;
+    // queries.skip = skip;
+    // queries.limit =limit;
+    // queries.email =email;
+   // Initialize queries object
+   const queries = {
+    skip,
+    limit: parseInt(limit),
+    email,
+};
+
+
     console.log("queries from GetAuthorSubmitByEmailController",queries);
     try {
         
@@ -177,5 +188,97 @@ exports.GetAuthorSubmitByIdController = async (req, res, next) => {
             error: err,
             
         })
+    }
+};
+
+
+exports.GetAllPapersController = async (req, res, next) => {
+    try {
+        // Fetch all papers including all fields
+        const papers = await authorSubmit.find({}); // Fetch all fields of all documents
+
+        res.status(200).json({
+            status: "success",
+            data: papers,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: "Fail",
+            message: "Failed to fetch paper details",
+            error: err,
+        });
+    }
+};
+
+//acceptPaperController
+exports.acceptPaperController = async (req, res) => {
+    try {
+        const { paperId } = req.body;
+
+        // Find the paper by ID
+        const paper = await authorSubmit.findById(paperId);
+
+        if (!paper) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Paper not found",
+            });
+        }
+
+        // Check if the paper is already accepted
+        if (paper.accepted) {
+            return res.status(400).json({
+                status: "fail",
+                message: "Paper has already been accepted",
+            });
+        }
+
+        // Create a new document in the AcceptedPaper collection with the paper's data
+        const acceptedPaper = new AcceptedPaper({
+            title: paper.title,
+            abstract: paper.abstract,
+            paperDomain: paper.paperDomain,
+            keywords: paper.keywords,
+            cloudinaryURL: paper.cloudinaryURL,
+            cloudinaryPublicID: paper.cloudinaryPublicID,
+            assignedReviewer: paper.assignedReviewer,
+            review: paper.review,
+            author: paper.author,
+            accepted: true // Mark as accepted
+        });
+
+        // Save the accepted paper
+        await acceptedPaper.save();
+
+        // Update the original paper to mark it as accepted
+        paper.accepted = true;
+        await paper.save();
+
+        res.status(200).json({
+            status: "success",
+            message: "Paper accepted and saved successfully",
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: "error",
+            message: "Failed to accept paper",
+            error: err.message,
+        });
+    }
+};
+
+exports.acceptPaperList=async (req, res) => {
+    try {
+        const papers = await AcceptedPaper.find();
+        res.status(200).json({
+            status: "success",
+            data: papers
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: "Fail",
+            message: "Failed to fetch accepted papers",
+            error: err,
+        });
     }
 };

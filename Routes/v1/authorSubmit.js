@@ -20,6 +20,9 @@ const upload = multer({ storage: storage });
 
 router.route("/get-research-areas").get(authorController.GetResearchAreasController);
 
+router.get('/get-papers', authorController.GetAllPapersController);
+router.post('/accept-paper', authorController.acceptPaperController);
+router.get('/accepted-papers-list',authorController.acceptPaperList);
 router.route("/get-paper-by-email").get(authorController.GetAuthorSubmitByEmailController);
 router.route("/get-reviewer-assigned-paper-by-email").get(authorController.GetReviewerAssignedPaperByEmailController);
 
@@ -28,5 +31,7 @@ router.post('/upload', upload.single('file'), authorController.CreateAuthorSubmi
 router.route("/:id").get(authorController.GetAuthorSubmitByIdController);
 
 router.route("/").get(authorController.GetAuthorSubmitController);
+
+
 
 module.exports = router;
