@@ -21,7 +21,9 @@ const upload = multer({ storage: storage });
 router.route("/get-research-areas").get(authorController.GetResearchAreasController);
 
 router.get('/get-papers', authorController.GetAllPapersController);
-router.post('/accept-paper', authorController.acceptPaperController);
+router.route("/accept-paper").patch(authorController.acceptPaperController);
+router.route("/unaccept-paper").patch(authorController.unacceptPaperController);
+router.route("/delete-paper").delete(authorController.deletePaperController);
 router.get('/accepted-papers-list',authorController.acceptPaperList);
 router.route("/get-paper-by-email").get(authorController.GetAuthorSubmitByEmailController);
 router.route("/get-reviewer-assigned-paper-by-email").get(authorController.GetReviewerAssignedPaperByEmailController);

@@ -210,75 +210,162 @@ exports.GetAllPapersController = async (req, res, next) => {
     }
 };
 
-//acceptPaperController
-exports.acceptPaperController = async (req, res) => {
-    try {
-        const { paperId } = req.body;
+// //acceptPaperController
+// exports.acceptPaperController = async (req, res) => {
+//     try {
+//         const { paperId } = req.body;
 
-        // Find the paper by ID
-        const paper = await authorSubmit.findById(paperId);
+//         // Find the paper by ID
+//         const paper = await authorSubmit.findById(paperId);
 
-        if (!paper) {
-            return res.status(404).json({
-                status: "fail",
-                message: "Paper not found",
-            });
-        }
+//         if (!paper) {
+//             return res.status(404).json({
+//                 status: "fail",
+//                 message: "Paper not found",
+//             });
+//         }
 
-        // Check if the paper is already accepted
-        if (paper.accepted) {
-            return res.status(400).json({
-                status: "fail",
-                message: "Paper has already been accepted",
-            });
-        }
+//         // Check if the paper is already accepted
+//         if (paper.accepted) {
+//             return res.status(400).json({
+//                 status: "fail",
+//                 message: "Paper has already been accepted",
+//             });
+//         }
 
-        // Create a new document in the AcceptedPaper collection with the paper's data
-        const acceptedPaper = new AcceptedPaper({
-            title: paper.title,
-            abstract: paper.abstract,
-            paperDomain: paper.paperDomain,
-            keywords: paper.keywords,
-            cloudinaryURL: paper.cloudinaryURL,
-            cloudinaryPublicID: paper.cloudinaryPublicID,
-            assignedReviewer: paper.assignedReviewer,
-            review: paper.review,
-            author: paper.author,
-            accepted: true // Mark as accepted
-        });
+//         // Create a new document in the AcceptedPaper collection with the paper's data
+//         const acceptedPaper = new AcceptedPaper({
+//             title: paper.title,
+//             abstract: paper.abstract,
+//             paperDomain: paper.paperDomain,
+//             keywords: paper.keywords,
+//             cloudinaryURL: paper.cloudinaryURL,
+//             cloudinaryPublicID: paper.cloudinaryPublicID,
+//             assignedReviewer: paper.assignedReviewer,
+//             review: paper.review,
+//             author: paper.author,
+//             accepted: true ,// Mark as accepted
+//         });
 
-        // Save the accepted paper
-        await acceptedPaper.save();
+//         // Save the accepted paper
+//         await acceptedPaper.save();
 
-        // Update the original paper to mark it as accepted
-        paper.accepted = true;
-        await paper.save();
+//         // Update the original paper to mark it as accepted
+//         paper.accepted = true;
+//         await paper.save();
 
-        res.status(200).json({
-            status: "success",
-            message: "Paper accepted and saved successfully",
-        });
-    } catch (err) {
-        res.status(500).json({
-            status: "error",
-            message: "Failed to accept paper",
-            error: err.message,
-        });
-    }
-};
+//         res.status(200).json({
+//             status: "success",
+//             message: "Paper accepted and saved successfully",
+//         });
+//     } catch (err) {
+//         res.status(500).json({
+//             status: "error",
+//             message: "Failed to accept paper",
+//             error: err.message,
+//         });
+//     }
+// };
 
+//accepted paper List
 exports.acceptPaperList=async (req, res) => {
     try {
-        const papers = await AcceptedPaper.find();
+        // Find all papers where accepted is true
+        const papers = await authorSubmit.find({ accepted: true });
+
         res.status(200).json({
             status: "success",
             data: papers
         });
     } catch (err) {
         res.status(400).json({
-            status: "Fail",
+            status: "fail",
             message: "Failed to fetch accepted papers",
             error: err,
+        });
+    }
+};
+
+//accept paper
+exports.acceptPaperController = async (req, res) => {
+    const { paperId } = req.body;
+    
+    try {
+        // Find the paper by ID and update its accepted status to false
+        const paper = await authorSubmit.findByIdAndUpdate(paperId, { accepted: true }, { new: true });
+
+        if (!paper) {
+            return res.status(404).json({
+                success: false,
+                message: 'Paper not found',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Paper accepted successfully',
+            data: paper,
+        });
+    } catch (error) {
+        console.error('Error unaccepting paper:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error. Please try again later.',
+        });
+    }
+};
+
+
+//unaccept paper
+
+exports.unacceptPaperController=async (req, res) => {
+    const { paperId } = req.body;
+
+    try {
+        // Find the paper by ID and update its accepted status to false
+        const paper = await authorSubmit.findByIdAndUpdate(paperId, { accepted: false }, { new: true });
+
+        if (!paper) {
+            return res.status(404).json({
+                success: false,
+                message: 'Paper not found',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Paper unaccepted successfully',
+            data: paper,
+        });
+    } catch (error) {
+        console.error('Error unaccepting paper:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error. Please try again later.',
+        });
+    }
+};
+
+exports.deletePaperController = async (req, res) => {
+    try {
+        const { paperId } = req.body;
+        const paper = await authorSubmit.findByIdAndDelete(paperId);
+
+        if (!paper) {
+            return res.status(404).json({
+                success: false,
+                message: 'Paper not found',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Paper deleted successfully',
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error. Please try again later.',
         });
     }
 };
