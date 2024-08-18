@@ -1,7 +1,7 @@
 const cloudinary = require('../config/cloudinaryConfig');
 const SubmissionGuideline=require("../models/sumissionForm.model")
 const authorSubmit=require("../models/authorSubmit.model")
-const AcceptedPaper = require('../models/acceptePaperschema.model'); // New model
+
 const authorSubmitServices = require("../services/authorSubmit.services");
 
 exports.CreateAuthorSubmitController = async (req, res, next) => {
