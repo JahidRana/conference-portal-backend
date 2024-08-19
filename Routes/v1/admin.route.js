@@ -23,7 +23,9 @@ router.route("/").post(adminController.CreateAdminController);
 
 //registration route start
 router.route("/registration-fee").put(adminController.SaveRegistrationFees);
+router.route("/registration-process").put(adminController.saveRegistrationProcess);
 router.route("/registration-info").get(adminController.GetRegistrationFees);
+router.route("/registration-process").get(adminController.GetRegistrationProcess);
 //registration route end
 
 
