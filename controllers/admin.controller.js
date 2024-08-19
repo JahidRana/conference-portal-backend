@@ -6,6 +6,7 @@ const CreatedCommittee = require("../models/createCommittee.model");
 const Speaker = require("../models/UniversityStaffSchema .model");
 const ConferenceDates = require("../models/ConferenceDate.model");
 const SubmissionGuideline=require("../models/sumissionForm.model")
+const RegistrationFees=require("../models/registrationFees.model.js");
 exports.CreateAdminController = async (req, res, next) => {
   try {
     const email = req.body.email;
@@ -461,3 +462,41 @@ exports.getupdateSubmissioninfo=async (req, res) => {
       res.status(500).send({ message: 'Server Error', error: error.message });
   }
 };
+
+exports.SaveRegistrationFees = async (req, res) => {
+  try {
+      const registrations = req.body;
+
+      // Update or insert the incoming data
+      const result = await Promise.all(registrations.map(async (reg) => {
+          return RegistrationFees.updateOne(
+              { category: reg.category }, // Use a unique identifier if needed
+              { $set: reg },
+              { upsert: true }
+          );
+      }));
+
+      // Get the categories that were sent in the request
+      const incomingCategories = registrations.map(reg => reg.category);
+
+      // Remove any categories from the database that are not in the incoming data
+      await RegistrationFees.deleteMany({
+          category: { $nin: incomingCategories }
+      });
+
+      res.status(200).json({ message: 'Data saved and outdated entries removed successfully', result });
+  } catch (error) {
+      res.status(500).json({ message: 'Error saving data', error });
+  }
+};
+
+exports.GetRegistrationFees=async (req, res) => {
+  try {
+      const fees = await RegistrationFees.find(); // Fetch all records from the RegistrationFees model
+      res.status(200).json(fees); // Send the fetched data as JSON
+  } catch (error) {
+      console.error('Error fetching registration fees:', error);
+      res.status(500).json({ error: 'Internal Server Error' }); // Handle errors
+  }
+};
+

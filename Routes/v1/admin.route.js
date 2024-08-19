@@ -19,11 +19,18 @@ const storage = new CloudinaryStorage({
 
 
 router.route("/").post(adminController.CreateAdminController);
+
+
+//registration route start
+router.route("/registration-fee").put(adminController.SaveRegistrationFees);
+router.route("/registration-info").get(adminController.GetRegistrationFees);
+//registration route end
+
+
 router.route("/get-admin").post(adminController.GetAdminController);
 router.route("/").get(adminController.GetAdminController);
 router.route("/admin-list").get(adminController.GetAdminListController);
 router.route("/admin-list/:email").delete(adminController.removeAdminByEmailController);
-
 
 
 
@@ -46,10 +53,6 @@ router.route("/remove/committe/:id").delete(adminController.removeFullcommittee)
 
 //Committe route end here 
 //==============================
-
-
-
-
 
 
 
