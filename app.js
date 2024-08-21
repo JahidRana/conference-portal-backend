@@ -32,6 +32,7 @@ const authorRoute = require('./Routes/v1/authorSubmit');
 const adminRoute = require('./Routes/v1/admin.route');
 const reviewerRoute = require('./Routes/v1/reviewer.route');
 const signUpRoute = require('./Routes/v1/signUp.route');
+const newsignUpRoute = require('./Routes/v1/newSignup.route');//new sign up route
 const committeeRoute = require('./Routes/v1/createCommittee.route');
 const utilitiesRoute = require('./Routes/v1/utilities.route');
 const trackRoute = require('./Routes/v1/track.route');
@@ -43,6 +44,8 @@ app.use('/api/v1/admin', adminRoute);
 app.use('/api/v1/reviewer', reviewerRoute);
 app.use('/api/v1/create-committee', committeeRoute);
 app.use('/api/v1/sign-up', signUpRoute);
+
+app.use('/api/v1/new-sign-up', newsignUpRoute);//new-sign up route
 app.use('/api/v1', utilitiesRoute);
 app.use('/api/v1/track-chair/delete-assigned-reviewer', trackRoute);
 
