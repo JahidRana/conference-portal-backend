@@ -8,6 +8,8 @@ const ConferenceDates = require("../models/ConferenceDate.model");
 const SubmissionGuideline=require("../models/sumissionForm.model")
 const RegistrationFees=require("../models/registrationFees.model.js");
 const RegistrationProcess= require("../models/registrationProcess.model.js");
+const User =require("../models/userSchema.model");
+
 exports.CreateAdminController = async (req, res, next) => {
   try {
     const email = req.body.email;
@@ -536,5 +538,98 @@ exports.GetRegistrationProcess=async (req, res) => {
   } catch (error) {
       console.error('Error fetching registration fees:', error);
       res.status(500).json({ error: 'Internal Server Error' }); // Handle errors
+  }
+};
+
+
+//fetch unapprovedReviewers
+exports.getUnapprovedReviewers = async (req, res) => {
+  try {
+    const unapprovedReviewers = await User.find({
+      role: 'reviewer',
+      isVerified: true,
+      isApproved: false,
+    });
+
+    res.status(200).json(unapprovedReviewers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+//save approvedReviewers
+exports.approveReviewer = async (req, res) => {
+  const { userId } = req.body;
+  console.log("Reviewer ID:", userId); // Make sure userId
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isApproved = true;
+    await user.save();
+
+    res.status(200).json({ message: 'User approved successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
+
+
+// Fetch approved reviewers
+exports.getApprovedReviewers = async (req, res) => {
+  try {
+    const reviewers = await User.find({ isVerified: true, isApproved: true });
+    res.status(200).json(reviewers);
+  } catch (error) {
+    console.error('Error fetching approved reviewers:', error);
+    res.status(500).json({ message: 'Failed to fetch approved reviewers.' });
+  }
+};
+
+// Delete a reviewer
+exports.deleteReviewer = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const reviewer = await User.findByIdAndDelete(id);
+    if (!reviewer) {
+      return res.status(404).json({ message: 'Reviewer not found.' });
+    }
+    res.status(200).json({ message: 'Reviewer deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting reviewer:', error);
+    res.status(500).json({ message: 'Failed to delete reviewer.' });
+  }
+};
+
+exports.addUserManually=async (req, res) => {
+  const { firstName, lastName, email, role, password } = req.body;
+
+  try {
+    // Check if the user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    // Create a new user with the given role
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      isVerified: true, // Set verified status to true
+      isApproved: true, // Set approved status to true
+    });
+
+    // Save the new user to the database
+    await newUser.save();
+
+    res.status(200).json({ message: 'User added successfully' });
+  } catch (error) {
+    console.error('Error adding user:', error);
+    res.status(500).json({ message: 'Server error', error: error.message || error });
   }
 };

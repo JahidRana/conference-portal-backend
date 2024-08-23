@@ -89,6 +89,20 @@ router.route('/get-update-submission').get(adminController.getupdateSubmissionin
 
 //submission route end here
 
+//get unapproved user list route
+router.route('/unapproved-reviewers').get(adminController.getUnapprovedReviewers);
+//save approved user list route
+router.route('/approve-reviewer').post(adminController.approveReviewer);
+
+
+
+// Route to get approved reviewers
+router.route('/approved-reviewers-list').get(adminController.getApprovedReviewers);
+
+// Route to delete a reviewer
+router.route('/reviewer/:id').delete(adminController.deleteReviewer);
+router.route('/add-user').post(adminController.addUserManually);
+
 
 router.use((err, req, res, next) => {
     console.error(err.stack);

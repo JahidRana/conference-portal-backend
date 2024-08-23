@@ -15,26 +15,30 @@ exports.CreateSignUpController = async (req, res) => {
     const { firstName, lastName, email, password, role } = req.body;
 
     try {
+        // Check if the user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        const user = new User({ firstName, lastName, email, password, role });
-        await user.save();
-
-        // Create a token that expires in 10 minutes
+        // Create the OTP and the token
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const token = jwt.sign({ email, otp }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
+        // Prepare the email options
         const mailOptions = {
-            from: process.env.EMAIL,
+            from: 'Conference Portal',
             to: email,
             subject: 'Your OTP Code',
             text: `Your OTP code is ${otp}`,
         };
 
+        // Send the email before saving the user
         await transporter.sendMail(mailOptions);
+
+        // If the email is sent successfully, save the user to the database
+        const user = new User({ firstName, lastName, email, password, role });
+        await user.save();
 
         res.status(200).json({ message: 'OTP sent to email', token });
     } catch (error) {
@@ -61,9 +65,10 @@ exports.VerifyOtpController = async (req, res) => {
         user.isVerified = true;
         await user.save();
 
-        res.status(200).json({ message: 'User verified successfully' });
+          res.status(200).json({ message: 'User verified successfully', user });
     } catch (error) {
         console.error('Error occurred in VerifyOtpController:', error); // Log the error
         res.status(400).json({ message: 'Invalid or expired token', error: error.message || error });
     }
 };
+
