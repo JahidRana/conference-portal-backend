@@ -1,4 +1,7 @@
 //admin.controller.js
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
 const adminServices = require("../services/admin.services");
 // const cloudinary = require("../config/cloudinaryConfig");
 const cloudinary = require('../config/cloudinaryConfig');
@@ -603,33 +606,58 @@ exports.deleteReviewer = async (req, res) => {
   }
 };
 
-exports.addUserManually=async (req, res) => {
-  const { firstName, lastName, email, role, password } = req.body;
+const transporter = nodemailer.createTransport({
+  service: 'Gmail',
+  auth: {
+      user: process.env.EMAIL,
+      pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+exports.addUserManually = async (req, res) => {
+  const { firstName, lastName, email, role } = req.body;
 
   try {
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
+      // Check if the user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          return res.status(400).json({ message: 'User already exists' });
+      }
 
-    // Create a new user with the given role
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
-      password,
-      role,
-      isVerified: true, // Set verified status to true
-      isApproved: true, // Set approved status to true
-    });
+      // Generate a temporary password
+      const plainPassword = Math.random().toString(36).slice(-8);
 
-    // Save the new user to the database
-    await newUser.save();
+      // Hash the password before saving
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    res.status(200).json({ message: 'User added successfully' });
+      // Create a new user with the hashed password
+      const newUser = new User({
+          firstName,
+          lastName,
+          email,
+          password: hashedPassword, // Store the hashed password
+          role,
+          isVerified: true, // Set verified status to true
+          isApproved: true, // Set approved status to true
+      });
+
+      // Save the new user to the database
+      await newUser.save();
+
+      // Prepare the email options
+      const mailOptions = {
+          from: 'Conference Portal',
+          to: email,
+          subject: 'Welcome to Conference Portal',
+          text: `Dear ${firstName} ${lastName},\n\nYour account has been successfully created with the role of ${role}.\n\nYour password is: ${plainPassword}\n\n.\n\nBest regards,\nConference Portal`,
+      };
+
+      // Send the email
+      await transporter.sendMail(mailOptions);
+
+      res.status(200).json({ message: 'User added and email sent successfully' });
   } catch (error) {
-    console.error('Error adding user:', error);
-    res.status(500).json({ message: 'Server error', error: error.message || error });
+      console.error('Error adding user:', error);
+      res.status(500).json({ message: 'Server error', error: error.message || error });
   }
 };
