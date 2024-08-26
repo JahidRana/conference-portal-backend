@@ -143,30 +143,39 @@ exports.GetAuthorSubmitByEmailController = async (req, res, next) => {
     }
 };
 exports.GetReviewerAssignedPaperByEmailController = async (req, res, next) => {
-    console.log("++++++++++++++++",req.query);
-    const {page=1, limit=8, email} =req.query;
-    const skip = (page-1)*parseInt(limit);
+    console.log("++++++++++++++++", req.query);
+    
+    // Initialize the queries object
+    const queries = {};
+    
+    const { page = 1, limit = 8, email } = req.query;
+    
+    // Calculate skip and convert limit to integer
+    const skip = (page - 1) * parseInt(limit, 10);
+    
+    // Set properties in the queries object
     queries.skip = skip;
-    queries.limit =limit;
-    queries.email =email;
-    console.log("queries from GetAuthorSubmitByEmailController",queries);
+    queries.limit = parseInt(limit, 10);
+    queries.email = email;
+    
+    console.log("queries from GetReviewerAssignedPaperByEmailController", queries);
+    
     try {
-        
         const registeredInfo = await authorSubmitServices.GetReviewerAssignedPaperByEmailServices(queries);
         res.status(200).json({
             status: "success",
-            message: "Submitted data get successfully",
+            message: "Submitted data fetched successfully",
             data: registeredInfo
-        })
+        });
     } catch (err) {
         res.status(400).json({
             status: "Fail",
-            message: "Can't Submitted data get",
-            error: err,
-            
-        })
+            message: "Can't fetch submitted data",
+            error: err
+        });
     }
 };
+
 exports.GetAuthorSubmitByIdController = async (req, res, next) => {
    
     const {id } = req.params;

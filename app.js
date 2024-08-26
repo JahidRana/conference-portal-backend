@@ -36,6 +36,8 @@ const newsignUpRoute = require('./Routes/v1/newSignup.route');//new sign up rout
 const committeeRoute = require('./Routes/v1/createCommittee.route');
 const utilitiesRoute = require('./Routes/v1/utilities.route');
 const trackRoute = require('./Routes/v1/track.route');
+const signInRoute=require('./Routes/v1/signin.route');
+
 
 // Set up routes using multer with Cloudinary storage
 app.use('/api/v1/contact', contactRoute);
@@ -46,6 +48,8 @@ app.use('/api/v1/create-committee', committeeRoute);
 app.use('/api/v1/sign-up', signUpRoute);
 
 app.use('/api/v1/new-sign-up', newsignUpRoute);//new-sign up route
+app.use('/api/v1/sign-in', signInRoute);//new-sign up route
+
 app.use('/api/v1', utilitiesRoute);
 app.use('/api/v1/track-chair/delete-assigned-reviewer', trackRoute);
 

@@ -36,9 +36,10 @@ exports.CreateSignUpController = async (req, res) => {
         // Send the email before saving the user
         await transporter.sendMail(mailOptions);
 
-        // If the email is sent successfully, save the user to the database
-        const user = new User({ firstName, lastName, email, password, role });
-        await user.save();
+     // If the email is sent successfully, save the user to the database
+     const isApproved = role === 'author'; // Set isApproved=true if role is 'author'
+     const user = new User({ firstName, lastName, email, password, role, isApproved });
+     await user.save();
 
         res.status(200).json({ message: 'OTP sent to email', token });
     } catch (error) {

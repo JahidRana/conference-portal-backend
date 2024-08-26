@@ -583,7 +583,11 @@ exports.approveReviewer = async (req, res) => {
 // Fetch approved reviewers
 exports.getApprovedReviewers = async (req, res) => {
   try {
-    const reviewers = await User.find({ isVerified: true, isApproved: true });
+      const reviewers = await User.find({
+      isVerified: true,
+      isApproved: true,
+      role: { $ne: 'admin' } // Exclude users with the role of 'admin'
+    });
     res.status(200).json(reviewers);
   } catch (error) {
     console.error('Error fetching approved reviewers:', error);
@@ -627,15 +631,12 @@ exports.addUserManually = async (req, res) => {
       // Generate a temporary password
       const plainPassword = Math.random().toString(36).slice(-8);
 
-      // Hash the password before saving
-      const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-      // Create a new user with the hashed password
+      // Create a new user with the plain password (will be hashed by the schema)
       const newUser = new User({
           firstName,
           lastName,
           email,
-          password: hashedPassword, // Store the hashed password
+          password: plainPassword, // Store the plain password
           role,
           isVerified: true, // Set verified status to true
           isApproved: true, // Set approved status to true
