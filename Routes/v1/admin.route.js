@@ -94,7 +94,10 @@ router.route('/unapproved-reviewers').get(adminController.getUnapprovedReviewers
 //save approved user list route
 router.route('/approve-reviewer').post(adminController.approveReviewer);
 
-
+//handle requestes reviewer
+router.route('/requested-reviewers').get(adminController.getRequestedReviewers);
+router.route('/accept-request').post(adminController.acceptReviewerRequest);
+router.route('/reject-request').post(adminController.rejectReviewerRequest);
 
 // Route to get approved reviewers
 router.route('/approved-reviewers-list').get(adminController.getApprovedReviewers);

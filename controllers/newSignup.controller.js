@@ -16,10 +16,10 @@ exports.CreateSignUpController = async (req, res) => {
 
     try {
         // Check if the user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
+        // const existingUser = await User.findOne({ email });
+        // if (existingUser) {
+        //     return res.status(400).json({ message: 'User already exists' });
+        // }
 
         // Create the OTP and the token
         const otp = Math.floor(100000 + Math.random() * 900000).toString();

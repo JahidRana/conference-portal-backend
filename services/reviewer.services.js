@@ -1,6 +1,7 @@
 const ReviewersList = require("../models/reviewerlist.model")
 const RequestedReviewers = require("../models/requestedReviewers.model")
 const AuthorSubmit = require("../models/authorSubmit.model")
+
 exports.createReviewerService = async (info) => {
     
     const submitInfo = await RequestedReviewers.create(info);

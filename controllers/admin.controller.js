@@ -545,13 +545,15 @@ exports.GetRegistrationProcess=async (req, res) => {
 };
 
 
-//fetch unapprovedReviewers
+
+// fetch unapprovedReviewers
 exports.getUnapprovedReviewers = async (req, res) => {
   try {
     const unapprovedReviewers = await User.find({
       role: 'reviewer',
       isVerified: true,
       isApproved: false,
+      reviwerrequestStatus: null, // Corrected field name
     });
 
     res.status(200).json(unapprovedReviewers);
@@ -571,7 +573,7 @@ exports.approveReviewer = async (req, res) => {
     user.isApproved = true;
     await user.save();
 
-    res.status(200).json({ message: 'User approved successfully' });
+    res.status(200).json({ message: 'Approved successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
@@ -660,5 +662,64 @@ exports.addUserManually = async (req, res) => {
   } catch (error) {
       console.error('Error adding user:', error);
       res.status(500).json({ message: 'Server error', error: error.message || error });
+  }
+};
+
+exports.getRequestedReviewers = async (req, res) => {
+  try {
+      const requestedReviewers = await User.find({
+          isApproved: false,
+          reviwerrequestStatus: "pending"
+      });
+
+      res.json(requestedReviewers);
+  } catch (err) {
+      console.error("Error fetching requested reviewers:", err);
+      res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Accept a reviewer request
+exports.acceptReviewerRequest = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+      const reviewerRequest = await User.findOne({ _id: userId });
+
+      if (!reviewerRequest) {
+          return res.status(404).json({ message: 'Reviewer request not found' });
+      }
+      reviewerRequest.reviwerrequestStatus="accepted";
+      reviewerRequest.isApproved = true;
+      
+      await reviewerRequest.save();
+
+      // const user = await User.findById(userId);
+      // user.role = 'reviewer';
+      // await user.save();
+
+      res.status(200).json({ message: 'Reviewer request accepted' });
+  } catch (err) {
+      console.error("Error accepting reviewer request:", err);
+      res.status(500).json({ message: 'Server error' });
+  }
+};
+exports.rejectReviewerRequest = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+      const reviewerRequest = await User.findOne({ _id: userId});
+
+      if (!reviewerRequest) {
+          return res.status(404).json({ message: 'Reviewer request not found' });
+      }
+      reviewerRequest.reviwerrequestStatus="rejected";
+
+      await reviewerRequest.save(); // Or you could just set the status to 'Rejected'
+
+      res.status(200).json({ message: 'Reviewer request rejected' });
+  } catch (err) {
+      console.error("Error rejecting reviewer request:", err);
+      res.status(500).json({ message: 'Server error' });
   }
 };
