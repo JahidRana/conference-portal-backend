@@ -36,15 +36,15 @@ exports.CreateAuthorSubmitController = async (req, res, next) => {
     console.log("From submit info mail:", email);
 
     // Check for existing record with the same email
-    const existingRecord = await authorSubmit.findOne({ "author.email": email });
-    console.log("existing record:", existingRecord);
+    // const existingRecord = await authorSubmit.findOne({ "author.email": email });
+    // console.log("existing record:", existingRecord);
 
-    if (existingRecord) {
-      return res.status(400).json({
-        status: "Fail",
-        message: "Duplicate entry found",
-      });
-    }
+    // if (existingRecord) {
+    //   return res.status(400).json({
+    //     status: "Fail",
+    //     message: "Duplicate entry found",
+    //   });
+    // }
 
     // Save submission to the database
     const registeredInfo = await authorSubmitServices.createAuthorSubmitServices(submitInformation);

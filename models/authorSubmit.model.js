@@ -8,7 +8,7 @@ var validateEmail = function (email) {
 const AuthorSubmit = mongoose.Schema({
   title: String,
   abstract: String,
-  paperDomain: String,
+  paperDomains: [{ type: String }], // Change to array to handle multiple domains
   keywords: String,
   cloudinaryURL: String, // New field for Cloudinary URL
   cloudinaryPublicID: String, // New field for Cloudinary Public ID
