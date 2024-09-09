@@ -723,3 +723,18 @@ exports.rejectReviewerRequest = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.getReviewers=async (req, res) => {
+  try {
+      // Find all users with role "reviewer", isVerified true, and isApproved true
+      const reviewers = await User.find({ role: 'reviewer', isVerified: true, isApproved: true }, 'firstName lastName email');
+      if (reviewers.length === 0) {
+          return res.status(404).json({ message: 'No reviewers found' });
+      }
+
+      res.status(200).json({ data: reviewers });
+  } catch (error) {
+      console.error('Error fetching reviewers:', error);
+      res.status(500).json({ message: 'Error fetching reviewers', error });
+  }
+};

@@ -25,7 +25,11 @@ router.route("/accept-paper").patch(authorController.acceptPaperController);
 router.route("/unaccept-paper").patch(authorController.unacceptPaperController);
 router.route("/delete-paper").delete(authorController.deletePaperController);
 router.get('/accepted-papers-list',authorController.acceptPaperList);
-router.route("/get-paper-by-email").get(authorController.GetAuthorSubmitByEmailController);
+// router.route("/get-paper-by-email").get(authorController.GetAuthorSubmitByEmailController);
+
+router.route("/get-paper-by-email-role").get(authorController.GetpaperByEmailandRoleController);
+
+
 router.route("/get-reviewer-assigned-paper-by-email").get(authorController.GetReviewerAssignedPaperByEmailController);
 
 router.post('/upload', upload.single('file'), authorController.CreateAuthorSubmitController);
@@ -33,6 +37,9 @@ router.post('/upload', upload.single('file'), authorController.CreateAuthorSubmi
 router.route("/:id").get(authorController.GetAuthorSubmitByIdController);
 
 router.route("/").get(authorController.GetAuthorSubmitController);
+
+//assign reviewers
+router.route("/assign-reviewers").patch(authorController.AssignReviewerController);
 
 
 

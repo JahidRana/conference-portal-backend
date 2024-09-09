@@ -106,6 +106,9 @@ router.route('/approved-reviewers-list').get(adminController.getApprovedReviewer
 router.route('/reviewer/:id').delete(adminController.deleteReviewer);
 router.route('/add-user').post(adminController.addUserManually);
 
+//router for get reviewer role dropdown select
+router.route('/get-reviewers').get(adminController.getReviewers);
+
 
 router.use((err, req, res, next) => {
     console.error(err.stack);

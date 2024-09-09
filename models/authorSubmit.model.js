@@ -14,8 +14,8 @@ const AuthorSubmit = mongoose.Schema({
   cloudinaryPublicID: String, // New field for Cloudinary Public ID
   assignedReviewer: [
     {
-      value: String,
-      label: String
+      name: String,
+      email: String
     }
   ],
   review: {
@@ -60,6 +60,14 @@ const AuthorSubmit = mongoose.Schema({
     line2: String,
   }],
   accepted: { type: Boolean, default: false },
+  role: {
+    type: String,
+    default: null // Make role optional with a default value of null
+},
+status: {
+    type: String,
+    default: null // status is now optional and defaults to null
+}
 }, {
   timestamps: true
 });

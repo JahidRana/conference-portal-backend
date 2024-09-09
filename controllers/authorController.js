@@ -378,3 +378,57 @@ exports.deletePaperController = async (req, res) => {
         });
     }
 };
+
+
+exports.GetpaperByEmailandRoleController = async (req, res) => {
+    const { email, role } = req.query;
+    try {
+        // Fetch papers based on email and role
+        const papers = await authorSubmit.find({
+            'author.email': email,
+            role: role
+        });
+      
+        // Check if papers were found
+        if (papers.length === 0) {
+            return res.status(404).json({ message: 'No papers found' });
+        }
+
+        res.status(200).json({ data: papers });
+    } catch (error) {
+        console.error('Error fetching papers:', error);
+        res.status(500).json({ message: 'Error fetching papers', error });
+    }
+};
+
+
+exports.AssignReviewerController=async (req, res) => {
+    const { paperId, reviewers } = req.body;
+  
+    if (!paperId || !reviewers || reviewers.length === 0) {
+      return res.status(400).json({ message: 'Paper ID and reviewers are required' });
+    }
+  
+    try {
+      // Find the paper by ID and update the assignedReviewer and status fields
+      const updatedPaper = await authorSubmit.findByIdAndUpdate(
+        paperId,
+        {
+          $set: {
+            assignedReviewer: reviewers,
+            status: 'Under Review' // Update status to 'under review'
+          }
+        },
+        { new: true } // Return the updated document
+      );
+  
+      if (!updatedPaper) {
+        return res.status(404).json({ message: 'Paper not found' });
+      }
+  
+      res.status(200).json({ message: 'Reviewers assigned and status updated to "under review"', data: updatedPaper });
+    } catch (error) {
+      console.error('Error assigning reviewers and updating status:', error);
+      res.status(500).json({ message: 'Error updating reviewers and status' });
+    }
+  };
