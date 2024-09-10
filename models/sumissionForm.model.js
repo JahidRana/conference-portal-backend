@@ -5,9 +5,9 @@ const SubmissionGuidelineSchema = mongoose.Schema({
         type: String,
         required: [true, "Please provide the submission guideline"],
     },
-    researchAreas: {
+    submissionProcess: {
         type: [String],  // Array of strings to store multiple research areas
-        required: [true, "Please provide at least one research area"],
+        required: [true, "Please provide at least one submission Process"],
     },
 }, {
     timestamps: true  // Automatically adds createdAt and updatedAt fields

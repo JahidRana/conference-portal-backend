@@ -12,6 +12,9 @@ const SubmissionGuideline=require("../models/sumissionForm.model")
 const RegistrationFees=require("../models/registrationFees.model.js");
 const RegistrationProcess= require("../models/registrationProcess.model.js");
 const User =require("../models/userSchema.model");
+const Domain =require("../models/domainSchema .model")
+const AuthorSubmit=require("../models/authorSubmit.model.js");
+
 
 exports.CreateAdminController = async (req, res, next) => {
   try {
@@ -436,12 +439,12 @@ exports.getupdateConferenceDates = async (req, res) => {
 
 
 exports.updateSubmissioninfo = async (req, res) => {
-  const { guideline, researchAreas } = req.body;
+  const { guideline, submissionProcess } = req.body;
 
   try {
       const result = await SubmissionGuideline.updateOne(
           {}, // Empty filter object to update the first found document or create a new one
-          { guideline, researchAreas }, // Replace with new data
+          { guideline, submissionProcess }, // Replace with new data
           { upsert: true, runValidators: true } // Upsert: create if not exist
       );
 
@@ -736,5 +739,70 @@ exports.getReviewers=async (req, res) => {
   } catch (error) {
       console.error('Error fetching reviewers:', error);
       res.status(500).json({ message: 'Error fetching reviewers', error });
+  }
+};
+
+exports.customizeDomainController=async (req, res) => {
+  try {
+      // Extract domains from request body
+      const { domains } = req.body;
+
+      if (!Array.isArray(domains) || domains.length === 0) {
+          return res.status(400).json({ message: 'Invalid domains data' });
+      }
+
+      // Save each domain
+      const savedDomains = [];
+      for (const domain of domains) {
+          if (domain.mainDomain && Array.isArray(domain.subDomains) && domain.subDomains.length > 0) {
+              const newDomain = new Domain({
+                  mainDomain: domain.mainDomain,
+                  subDomains: domain.subDomains,
+              });
+
+              const savedDomain = await newDomain.save();
+              savedDomains.push(savedDomain);
+          }
+      }
+
+      return res.status(201).json({ message: 'Domains saved successfully', data: savedDomains });
+  } catch (error) {
+      console.error('Error saving domains:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+exports.getcustomizeDomainController=async (req, res) => {
+  try {
+      const domains = await Domain.find(); // Fetch all domains
+      res.status(200).json(domains);
+  } catch (error) {
+      console.error('Error fetching domains:', error);
+      res.status(500).json({ message: 'Error fetching domains' });
+  }
+};
+
+exports.rejectPaperController = async (req, res) => {
+  const { paperId } = req.body;
+// console.log("Paper Id"+paperId);
+  if (!paperId) {
+      return res.status(400).json({ message: 'Paper ID is required' });
+  }
+
+  try {
+      const paper = await AuthorSubmit.findById(paperId);
+      if (!paper) {
+          return res.status(404).json({ message: 'Paper not found' });
+      }
+
+      // Update the status to 'Rejected'
+      paper.status = 'Rejected';
+      await paper.save();
+
+      res.status(200).json({ message: 'Paper status updated to "Rejected"', data: paper });
+  } catch (error) {
+      console.error('Error rejecting paper:', error);
+      res.status(500).json({ message: 'Failed to reject the paper. Please try again.' });
   }
 };

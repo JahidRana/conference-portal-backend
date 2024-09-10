@@ -109,6 +109,11 @@ router.route('/add-user').post(adminController.addUserManually);
 //router for get reviewer role dropdown select
 router.route('/get-reviewers').get(adminController.getReviewers);
 
+//router for customize domain data store
+router.route('/cutomize-domains').post(adminController.customizeDomainController);
+router.route('/get-cutomize-domains').get(adminController.getcustomizeDomainController);
+router.route('/reject-paper').patch(adminController.rejectPaperController);
+
 
 router.use((err, req, res, next) => {
     console.error(err.stack);
