@@ -1,6 +1,9 @@
 const reviewerServices = require("../services/reviewer.services");
 const User = require("../models/userSchema.model");
 
+const AuthorSubmit=require("../models/authorSubmit.model");
+
+
 exports.CheckStatusReviewer = async (req, res) => {
   const { email } = req.params;
   const role = "reviewer";
@@ -246,5 +249,87 @@ exports.deleteSelectedReviewerController = async (req, res, next) => {
       message: "Can't get Reviewer List",
       error: err,
     });
+  }
+};
+
+//changes by me
+exports.reviewerReviewController = async (req, res) => {
+  const reviewerEmail = req.query.email;
+
+  // Validate that the email query parameter is provided
+  if (!reviewerEmail) {
+      return res.status(400).json({ error: 'Email parameter is required.' });
+  }
+
+  try {
+      // Find papers where the reviewer email matches
+      const papers = await AuthorSubmit.find(
+          { 'assignedReviewer.email': reviewerEmail },
+          '_id title cloudinaryURL' // Fetch only the document ID, title, and Cloudinary URL
+      );
+
+      // If no papers found, return a custom message
+      if (papers.length === 0) {
+          return res.status(200).json({ message: 'No assigned papers yet.' });
+      }
+
+      // Return the found papers
+      res.status(200).json(
+          papers.map(paper => ({
+              id: paper._id, // Return paper ID
+              title: paper.title, // Return paper title
+              paperURL: paper.cloudinaryURL // Return paper URL from Cloudinary
+          }))
+      );
+  } catch (error) {
+      // Handle server errors
+      res.status(500).json({ error: 'Server error', details: error.message });
+  }
+};
+exports.submitReviewController = async (req, res) => {
+  const { reviewMessage, reviewDate, paperId, reviewerEmail } = req.body;
+  const file = req.file;
+
+  // console.log("Review Message:", reviewMessage);
+  // console.log("Review Date:", reviewDate);
+  // console.log("Paper ID:", paperId);
+  // console.log("Reviewer Email:", reviewerEmail);
+  // console.log("Uploaded File:", file ? file : "No file uploaded");
+
+  try {
+    let reviewPicURL = '';
+    let reviewPublicID = '';
+
+    if (file) {
+      reviewPicURL = file.path;
+      reviewPublicID = file.filename;
+    }
+
+    // Find the paper in the database by its ID
+    const paper = await AuthorSubmit.findById(paperId);
+    if (!paper) {
+      return res.status(404).json({ message: "Paper not found" });
+    }
+
+    // Find the specific reviewer in the assignedReviewer array by matching the email
+    const reviewerIndex = paper.assignedReviewer.findIndex(reviewer => reviewer.email === reviewerEmail);
+    if (reviewerIndex === -1) {
+      return res.status(404).json({ message: "Reviewer not found for this paper." });
+    }
+
+    // Update the reviewer's reviewInfo
+    paper.assignedReviewer[reviewerIndex].reviewInfo = {
+      reviewDate,
+      reviewMessage,
+      reviewPicURL,
+      reviewPublicID
+    };
+
+    await paper.save();
+    res.status(200).json({ message: 'Review submitted successfully', data: paper });
+
+  } catch (error) {
+    console.error("Error in submitReviewController:", error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 };

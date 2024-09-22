@@ -8,36 +8,26 @@ var validateEmail = function (email) {
 const AuthorSubmit = mongoose.Schema({
   title: String,
   abstract: String,
-  paperDomains: [{ type: String }], // Change to array to handle multiple domains
+  paperDomains: [{ type: String }], // Array to handle multiple domains
   keywords: String,
   cloudinaryURL: String, // New field for Cloudinary URL
   cloudinaryPublicID: String, // New field for Cloudinary Public ID
+  
+  // Array of assigned reviewers, each having their own review info
   assignedReviewer: [
     {
+
       name: String,
-      email: String
+      email: String,
+      reviewInfo: {
+        reviewDate: String,
+        reviewMessage: String,  // Review message from this reviewer
+        reviewPicURL: String ,   // URL for any review-related images
+        reviewPublicID: String
+      }
     }
   ],
-  review: {
-    reviewDate: String,
-    Reviewer: {
-      displayName: String,
-      email: String,
-      photoURL: String
-    },
-    reviewInfo: [
-      {
-        overallEvaluation: String,
-        detailsEvaluation: String,
-        abstractEvaluation: String,
-        introductionEvaluation: String,
-        literatureEvaluation: String,
-        resultEvaluation: String,
-        commentToTCP: String,
-        referenceReview: String
-      }
-    ]
-  },
+  
   author: [{
     firstName: String,
     lastName: String,
@@ -59,15 +49,18 @@ const AuthorSubmit = mongoose.Schema({
     line1: String,
     line2: String,
   }],
+  
   accepted: { type: Boolean, default: false },
+  
   role: {
     type: String,
-    default: null // Make role optional with a default value of null
-},
-status: {
+    default: null // Optional role field with default value null
+  },
+  
+  status: {
     type: String,
-    default: null // status is now optional and defaults to null
-}
+    default: null // Optional status field with default value null
+  }
 }, {
   timestamps: true
 });
