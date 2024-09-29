@@ -22,6 +22,7 @@ const AuthorSubmit = mongoose.Schema({
       reviewInfo: {
         reviewDate: String,
         reviewMessage: String,  // Review message from this reviewer
+        recommendation:String,
         reviewPicURL: String ,   // URL for any review-related images
         reviewPublicID: String
       }
@@ -36,7 +37,7 @@ const AuthorSubmit = mongoose.Schema({
       trim: true,
       required: [true, 'Email address is required'],
       lowercase: true,
-      unique: true,
+      // unique: true,
       validate: [validateEmail, 'Please fill a valid email address'],
       match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
     },

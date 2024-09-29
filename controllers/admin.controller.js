@@ -19,7 +19,7 @@ const AuthorSubmit=require("../models/authorSubmit.model.js");
 exports.CreateAdminController = async (req, res, next) => {
   try {
     const email = req.body.email;
-    console.log(req.body);
+  
     if (!email) {
       return res.send({ code: 400, massage: "Bad Request" });
     }
@@ -44,7 +44,7 @@ exports.CreateAdminController = async (req, res, next) => {
 //   try {
 //     // Check if the request includes a file (picture)
 //     if (!req.file) {
-//       console.log("File not received");
+
 //       return res.status(400).send({ message: "No picture uploaded" });
 //     }
 
@@ -58,9 +58,9 @@ exports.CreateAdminController = async (req, res, next) => {
 
 //     // Construct the Cloudinary URL for the uploaded image
 //     const pictureUrl = result.secure_url;
-//     console.log("pictureUrl"+pictureUrl);
+
 //     const imageId = result.public_id;
-//     console.log("imageId"+imageId);
+
 //     // Create a new speaker instance and set its properties
 //     const speaker = new Speaker({
 //       title: req.body.title,
@@ -100,7 +100,7 @@ exports.createSpeakerController = async (req, res) => {
         unique_filename: true,
       },
       async (error, result) => {
-        console.log("Upload result:", result); // Log the result
+      
         if (error) {
           console.error("Upload error:", error); // Log the error
           return res.status(500).json({ message: "Failed to upload picture to Cloudinary", error: error.message });
@@ -192,7 +192,7 @@ exports.GetAdminListController = async (req, res, next) => {
 exports.removeAdminByEmailController = async (req, res, next) => {
   try {
     const { email } = req.params;
-    console.log("removing admin by email: ", email);
+  
     const reviewerList = await adminServices.removeAdminByEmailService(email);
     res.status(200).json({
       status: "success",
@@ -213,8 +213,7 @@ exports.removeAdminByEmailController = async (req, res, next) => {
 
 //     try {
 //         const {id} = req.params
-//         // console.log("remove commite id is"+id);
-//         console.log("Received ID:", id);
+
 //         const committeList = await adminServices.removeCommitteByIdService(id);
 //         res.status(200).json({
 //             status: "success",
@@ -262,7 +261,7 @@ exports.removeCommitteeByIdController = async (req, res, next) => {
 exports.removeFullcommittee = async (req, res, next) => {
   try {
     const committeeId = req.params.id;
-    console.log(committeeId);
+   
 
     // Assuming you have a Committee model to handle database operations
     const result = await CreatedCommittee.findByIdAndDelete(committeeId);
@@ -299,7 +298,7 @@ exports.UpdateCommitteController = async (req, res) => {
     email: req.body.email,
     convenor: req.body.convenor, // Include this if you want to specify the convenor status
   };
-  console.log(newMember);
+ 
   try {
     const updatedCommittee = await CreatedCommittee.findByIdAndUpdate(
       committeeId,
@@ -334,7 +333,7 @@ exports.GetCommitte = async (req, res) => {
 exports.HomePageContentController = async (req, res, next) => {
   try {
     const content = req.body.homePageMassage;
-    console.log("Content", content);
+   
     if (!content) {
       return res.send({ code: 400, massage: "Bad Request" });
     }
@@ -359,7 +358,7 @@ exports.HomePageContentController = async (req, res, next) => {
 // exports.UpdateDateController = async (req, res, next) => {
 //     try {
 //         const dateInfo =req.body;
-//         console.log("Update Date info below-",dateInfo);
+
 
 //         if(!dateInfo){
 //             return res.send({code: 400, massage: "Bad Request"})
@@ -390,12 +389,7 @@ exports.updateConferenceDates = async (req, res) => {
     ConferenceStartDate,
     ConferenceEndDate,
   } = req.body;
-//   console.log("PaperSubmissionDeadline: " + PaperSubmissionDeadline);
-//   console.log("AcceptanceNotification: " + AcceptanceNotification);
-//   console.log("CameraReadySubmission: " + CameraReadySubmission);
-//   console.log("RegistrationDeadline: " + RegistrationDeadline);
-//   console.log("ConferenceStartDate: " + ConferenceStartDate);
-//   console.log("ConferenceEndDate: " + ConferenceEndDate);
+
   try {
     let dates = await ConferenceDates.findOne(); // Find the single document
 
@@ -568,7 +562,7 @@ exports.getUnapprovedReviewers = async (req, res) => {
 //save approvedReviewers
 exports.approveReviewer = async (req, res) => {
   const { userId } = req.body;
-  console.log("Reviewer ID:", userId); // Make sure userId
+
   try {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -785,7 +779,7 @@ exports.getcustomizeDomainController=async (req, res) => {
 
 exports.rejectPaperController = async (req, res) => {
   const { paperId } = req.body;
-// console.log("Paper Id"+paperId);
+
   if (!paperId) {
       return res.status(400).json({ message: 'Paper ID is required' });
   }
@@ -804,5 +798,34 @@ exports.rejectPaperController = async (req, res) => {
   } catch (error) {
       console.error('Error rejecting paper:', error);
       res.status(500).json({ message: 'Failed to reject the paper. Please try again.' });
+  }
+};
+
+exports.getReviewsinfoController=async (req, res) => {
+  try {
+    const { paperId } = req.params;
+
+    // Find the paper by its _id
+    const paper = await AuthorSubmit.findById(paperId);
+
+    if (!paper) {
+      return res.status(404).json({ message: 'Paper not found' });
+    }
+
+    // Return the list of assigned reviewers with their details
+    const reviewers = paper.assignedReviewer.map(reviewer => ({
+      name: reviewer.name,
+      email: reviewer.email,
+      reviewInfo: {
+        reviewMessage: reviewer.reviewInfo.reviewMessage,
+        recommendation: reviewer.reviewInfo.recommendation,
+        reviewPicURL: reviewer.reviewInfo.reviewPicURL
+      }
+    }));
+
+    // Respond with the reviewers' details
+    res.json(reviewers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
   }
 };

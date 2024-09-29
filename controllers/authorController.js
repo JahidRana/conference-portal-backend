@@ -30,14 +30,14 @@ exports.CreateAuthorSubmitController = async (req, res, next) => {
         cloudinaryPublicID: cloudinaryResponse.public_id // Public ID for future reference
       };
   
-      console.log(submitInformation);
+    
         // Extract email from submitInformation
     const email = submitInformation.author?.[0]?.email;
-    console.log("From submit info mail:", email);
+
 
     // Check for existing record with the same email
     // const existingRecord = await authorSubmit.findOne({ "author.email": email });
-    // console.log("existing record:", existingRecord);
+
 
     // if (existingRecord) {
     //   return res.status(400).json({
@@ -87,7 +87,7 @@ exports.GetResearchAreasController = async (req, res, next) => {
 
 
 exports.GetAuthorSubmitController = async (req, res, next) => {
-    console.log(req.query);
+
     const {page=1, limit=8} =req.query;
     const skip = (page-1)*parseInt(limit);
     queries.skip = skip;
@@ -124,7 +124,7 @@ exports.GetAuthorSubmitByEmailController = async (req, res, next) => {
 };
 
 
-    console.log("queries from GetAuthorSubmitByEmailController",queries);
+   
     try {
         
         const registeredInfo = await authorSubmitServices.getAuthorSubmitByEmailServices(queries);
@@ -143,7 +143,7 @@ exports.GetAuthorSubmitByEmailController = async (req, res, next) => {
     }
 };
 exports.GetReviewerAssignedPaperByEmailController = async (req, res, next) => {
-    console.log("++++++++++++++++", req.query);
+
     
     // Initialize the queries object
     const queries = {};
@@ -158,7 +158,7 @@ exports.GetReviewerAssignedPaperByEmailController = async (req, res, next) => {
     queries.limit = parseInt(limit, 10);
     queries.email = email;
     
-    console.log("queries from GetReviewerAssignedPaperByEmailController", queries);
+   
     
     try {
         const registeredInfo = await authorSubmitServices.GetReviewerAssignedPaperByEmailServices(queries);
@@ -179,7 +179,7 @@ exports.GetReviewerAssignedPaperByEmailController = async (req, res, next) => {
 exports.GetAuthorSubmitByIdController = async (req, res, next) => {
    
     const {id } = req.params;
-    console.log("connectedhfgxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",id);
+  
     const queries = {_id : id};
     
     try {
@@ -301,7 +301,15 @@ exports.acceptPaperController = async (req, res) => {
     
     try {
         // Find the paper by ID and update its accepted status to false
-        const paper = await authorSubmit.findByIdAndUpdate(paperId, { accepted: true }, { new: true });
+        const paper = await authorSubmit.findByIdAndUpdate(
+          paperId, 
+          { 
+              accepted: true, 
+              status: 'Accepted' // Update status to 'Accepted'
+          }, 
+          { new: true } // Return the updated paper
+      );
+
 
         if (!paper) {
             return res.status(404).json({
@@ -432,3 +440,146 @@ exports.AssignReviewerController=async (req, res) => {
       res.status(500).json({ message: 'Error updating reviewers and status' });
     }
   };
+
+//   exports.showAuthoReviewController= async (req, res) => {
+//     try {
+//       const { role, email } = req.query;
+  
+//       // Ensure both role and email are provided
+//       if (!role || !email) {
+//         return res.status(400).json({ error: 'Role and email are required' });
+//       }
+  
+//       // Query to find matching documents based on role and author email
+//       const document = await authorSubmit.findOne({
+//         role: role,
+//         'author.email': email
+//       });
+  
+//       // If no document is found, return 404
+//       if (!document) {
+//         return res.status(404).json({ message: 'No matching records found' });
+//       }
+  
+//       // Filter assigned reviewers to only include those with at least one non-empty review field
+//       const reviewersWithValidReviewInfo = document.assignedReviewer.filter(reviewer => {
+//         const reviewInfo = reviewer.reviewInfo || {};
+//         return (
+//           reviewInfo.reviewMessage || 
+//           reviewInfo.recommendation || 
+//           reviewInfo.reviewPicURL
+//         );
+//       });
+  
+//       if (reviewersWithValidReviewInfo.length > 0) {
+//         // If valid reviewInfo is found, return the paper title along with reviewInfo of all reviewers who have reviewed
+//         return res.status(200).json({
+//           message: "Review(s) found",
+//           title: document.title, // Include the paper title in the response
+//           data: reviewersWithValidReviewInfo.map(reviewer => ({
+//             name: reviewer.name, // Include the reviewer's name
+//             reviewMessage: reviewer.reviewInfo?.reviewMessage || '-',
+//             recommendation: reviewer.reviewInfo?.recommendation || '-',
+//             reviewPicURL: reviewer.reviewInfo?.reviewPicURL || '-'
+//           }))
+//         });
+//       } else {
+//         // If no valid reviewInfo is present, return the paper title and a message saying no review has been done yet
+//         return res.status(200).json({
+//           message: "Reviewer has not reviewed the paper yet.",
+//           title: document.title, // Include the paper title even if no reviews are present
+//           data: []
+//         });
+//       }
+  
+//     } catch (error) {
+//       // Handle errors (e.g., database connection errors)
+//       return res.status(500).json({ error: error.message });
+//     }};
+
+
+exports.showAuthoReviewController = async (req, res) => {
+  try {
+      const { role, email } = req.query;
+
+      // Log the received query parameters
+  
+
+      // Ensure both role and email are provided
+      if (!role || !email) {
+          return res.status(400).json({ error: 'Role and email are required' });
+      }
+
+      // Query to find all matching documents based on role and author email
+      const documents = await authorSubmit.find({
+          role: role,
+          'author.email': email
+      });
+
+      // Log the retrieved documents
+ 
+
+      // If no document is found, return 404
+      if (documents.length === 0) {
+          return res.status(404).json({ message: 'No matching records found' });
+      }
+
+      // Process the documents to extract valid review information
+      const result = documents.map(document => {
+          // Check if assignedReviewer exists and is an array, then filter reviewers with valid review info
+          if (Array.isArray(document.assignedReviewer)) {
+              const reviewersWithValidReviewInfo = document.assignedReviewer.filter(reviewer => {
+                  const reviewInfo = reviewer.reviewInfo || {};
+                  return (
+                      reviewInfo.reviewMessage ||
+                      reviewInfo.recommendation ||
+                      reviewInfo.reviewPicURL
+                  );
+              });
+
+              // Only return papers with valid reviewers having review info
+              if (reviewersWithValidReviewInfo.length > 0) {
+                  return {
+                      title: document.title,
+                      status: document.status,
+                      reviewers: reviewersWithValidReviewInfo.map(reviewer => ({
+                          name: reviewer.name, // Include the reviewer's name
+                          reviewMessage: reviewer.reviewInfo?.reviewMessage || '-',
+                          recommendation: reviewer.reviewInfo?.recommendation || '-',
+                          reviewPicURL: reviewer.reviewInfo?.reviewPicURL || '-'
+                      }))
+                  };
+              }
+          }
+
+          // Return nothing if no valid reviewers are found
+          return null;
+      }).filter(doc => doc !== null); // Filter out null results
+
+      // Log the processed result
+  
+
+      // Check if there are any valid reviewers in the result
+      const hasReviews = result.some(doc => doc.reviewers.length > 0);
+
+      if (hasReviews) {
+        
+          return res.status(200).json({
+              message: "Review(s) found",
+              data: result
+          });
+      } else {
+        
+          // If no valid review info is present in any document
+          return res.status(200).json({
+              message: "No reviews found for the matching documents.",
+              data: result
+          });
+      }
+
+  } catch (error) {
+      // Handle errors (e.g., database connection errors)
+      // console.error("Error occurred:", error);
+      return res.status(500).json({ error: error.message });
+  }
+};

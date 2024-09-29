@@ -113,7 +113,7 @@ router.route('/get-reviewers').get(adminController.getReviewers);
 router.route('/cutomize-domains').post(adminController.customizeDomainController);
 router.route('/get-cutomize-domains').get(adminController.getcustomizeDomainController);
 router.route('/reject-paper').patch(adminController.rejectPaperController);
-
+router.route('/get-reviews-info/:paperId').get(adminController.getReviewsinfoController);
 
 router.use((err, req, res, next) => {
     console.error(err.stack);

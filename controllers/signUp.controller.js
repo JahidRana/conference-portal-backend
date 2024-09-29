@@ -6,7 +6,7 @@ exports.CreateSignUpController = async (req, res, next) => {
     try {
         const signUpInfo = req.body;
         const user = await SignUpServices.findUserByEmail(signUpInfo.email)
-        console.log(user);
+    
         if(user){
             return res.status(400).send("User already registered");
         }

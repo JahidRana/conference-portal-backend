@@ -4,7 +4,7 @@ const Dates = require("../models/ConferenceDate.model");
 
 exports.getHomePageContentService = async () => {
     const submitInfo = await HomePageMassage.find({});
-    console.log("HomePage Massage",submitInfo);
+ 
     return submitInfo;
 };
 exports.getDatesService = async () => {

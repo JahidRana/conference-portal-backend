@@ -36,7 +36,7 @@ router.route("/reviewing/:id").patch(reviewerController.UploadingReviewControlle
 
 router.route("/review-papers").get(reviewerController.reviewerReviewController);
 
-router.post('/submit-review', reviewerUpload.single('image'), reviewerController.submitReviewController);
+router.post('/submit-review', reviewerUpload.single('file'), reviewerController.submitReviewController);
 
 
 

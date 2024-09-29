@@ -37,7 +37,7 @@ exports.removeCommitteByIdService = async (id) => {
 
 exports.HomePageContentService = async ({ 'content': content }) => {
     const submitInfo = await HomePageMassage.updateOne({}, {$set:{ 'content': content }});
-    console.log("HomePage Massage",submitInfo);
+ 
     return submitInfo;
 };
 exports.updateDateService = async (dateInfo) => {

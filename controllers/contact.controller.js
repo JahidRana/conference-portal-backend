@@ -7,7 +7,7 @@ exports.createContactController = async (req, res, next) => {
         const contactDetails = req.body;
         
         const contact = await createContactServices(contactDetails);
-        console.log(contact);
+       
         res.status(200).json({
             status: "success",
             message: "Contact created successfully",

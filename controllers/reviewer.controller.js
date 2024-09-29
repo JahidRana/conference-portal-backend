@@ -33,7 +33,7 @@ exports.CreateReviewerController = async (req, res) => {
   try {
     // Find a reviewer by both email and role
     const existingReviewer = await User.findOne({ email, role });
-    console.log(existingReviewer);
+   
     if (existingReviewer) {
       // Return the existing reviewer data
       return res.status(200).json(existingReviewer);
@@ -87,9 +87,9 @@ exports.createReviewerWithDifferentRoleController = async (req, res) => {
 
 exports.CreateSelectedReviewerController = async (req, res, next) => {
   try {
-    console.log("callllled");
+ 
     const info = req.body;
-    console.log("accepted body from ReviewerController", info);
+ 
     if (!info.email) {
       return res.send({ code: 400, massage: "Bad Request" });
     }
@@ -139,10 +139,8 @@ exports.UploadingReviewController = async (req, res, next) => {
 
     const info = req.body;
 
-    console.log("UploadingReviewController", id, info);
-    // if(!info[0].value){
-    //     return res.send({code: 400, massage: "Bad Request"})
-    // }
+    
+  
 
     const registeredInfo = await reviewerServices.uploadReviewService(id, info);
     res.status(200).json({
@@ -161,7 +159,7 @@ exports.UploadingReviewController = async (req, res, next) => {
 exports.GetReviewerController = async (req, res, next) => {
   try {
     const email = req.body.email;
-    console.log("email from GetReviewerController", email);
+    
     const reviewerList = await reviewerServices.getReviewerServices({
       email: email,
     });
@@ -214,7 +212,7 @@ exports.GetRequestedReviewersController = async (req, res, next) => {
 exports.deleteReviewerByIdController = async (req, res, next) => {
   try {
     const { email } = req.params;
-    console.log("deleteReviewerByIdController id ", email);
+   
     const reviewerList = await reviewerServices.deleteReviewerByIdService(
       email
     );
@@ -234,7 +232,7 @@ exports.deleteReviewerByIdController = async (req, res, next) => {
 exports.deleteSelectedReviewerController = async (req, res, next) => {
   try {
     const { email } = req.params;
-    console.log("deleteReviewerByIdController id ", email);
+    
     const reviewerList = await reviewerServices.deleteSelectedReviewerService(
       email
     );
@@ -265,7 +263,7 @@ exports.reviewerReviewController = async (req, res) => {
       // Find papers where the reviewer email matches
       const papers = await AuthorSubmit.find(
           { 'assignedReviewer.email': reviewerEmail },
-          '_id title cloudinaryURL' // Fetch only the document ID, title, and Cloudinary URL
+          '_id title cloudinaryURL assignedReviewer' // Fetch necessary details along with all reviewers
       );
 
       // If no papers found, return a custom message
@@ -273,45 +271,55 @@ exports.reviewerReviewController = async (req, res) => {
           return res.status(200).json({ message: 'No assigned papers yet.' });
       }
 
-      // Return the found papers
-      res.status(200).json(
-          papers.map(paper => ({
-              id: paper._id, // Return paper ID
-              title: paper.title, // Return paper title
-              paperURL: paper.cloudinaryURL // Return paper URL from Cloudinary
-          }))
-      );
+      // Process each paper to find the matching reviewer and extract review info
+      const response = papers.map(paper => {
+          const reviewer = paper.assignedReviewer.find(r => r.email === reviewerEmail); // Find the matching reviewer by email
+          const reviewInfo = reviewer ? reviewer.reviewInfo : null; // Access the nested reviewInfo
+
+          return {
+              id: paper._id,
+              title: paper.title,
+              paperURL: paper.cloudinaryURL,
+              reviewMessage: reviewInfo ? reviewInfo.reviewMessage : null, // Access the review message from reviewInfo
+              reviewPicURL: reviewInfo ? reviewInfo.reviewPicURL : null // Access the review picture URL from reviewInfo
+          };
+      });
+
+      // Return the found papers with additional review information
+      res.status(200).json(response);
   } catch (error) {
       // Handle server errors
       res.status(500).json({ error: 'Server error', details: error.message });
   }
 };
+
+
 exports.submitReviewController = async (req, res) => {
-  const { reviewMessage, reviewDate, paperId, reviewerEmail } = req.body;
+  const { reviewMessage, reviewDate, paperId, reviewerEmail, recommendation } = req.body;
   const file = req.file;
 
-  // console.log("Review Message:", reviewMessage);
-  // console.log("Review Date:", reviewDate);
-  // console.log("Paper ID:", paperId);
-  // console.log("Reviewer Email:", reviewerEmail);
-  // console.log("Uploaded File:", file ? file : "No file uploaded");
+  // Check for required fields
+  if (!reviewMessage || !reviewDate || !paperId || !reviewerEmail || !recommendation) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
 
   try {
     let reviewPicURL = '';
     let reviewPublicID = '';
 
+    // If a file is provided, store its path and filename
     if (file) {
       reviewPicURL = file.path;
       reviewPublicID = file.filename;
     }
 
-    // Find the paper in the database by its ID
+    // Find the paper by its ID
     const paper = await AuthorSubmit.findById(paperId);
     if (!paper) {
       return res.status(404).json({ message: "Paper not found" });
     }
 
-    // Find the specific reviewer in the assignedReviewer array by matching the email
+    // Find the specific reviewer in the assignedReviewer array
     const reviewerIndex = paper.assignedReviewer.findIndex(reviewer => reviewer.email === reviewerEmail);
     if (reviewerIndex === -1) {
       return res.status(404).json({ message: "Reviewer not found for this paper." });
@@ -321,15 +329,20 @@ exports.submitReviewController = async (req, res) => {
     paper.assignedReviewer[reviewerIndex].reviewInfo = {
       reviewDate,
       reviewMessage,
+      recommendation, // Save the recommendation value
       reviewPicURL,
       reviewPublicID
     };
 
+    // Save the updated paper document
     await paper.save();
+
+    // Return success response
     res.status(200).json({ message: 'Review submitted successfully', data: paper });
 
   } catch (error) {
     console.error("Error in submitReviewController:", error);
+    // Return generic internal server error response
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 };

@@ -19,6 +19,8 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 
 router.route("/get-research-areas").get(authorController.GetResearchAreasController);
+router.route("/get-reviews-info").get(authorController.showAuthoReviewController);
+
 
 router.get('/get-papers', authorController.GetAllPapersController);
 router.route("/accept-paper").patch(authorController.acceptPaperController);
@@ -40,7 +42,6 @@ router.route("/").get(authorController.GetAuthorSubmitController);
 
 //assign reviewers
 router.route("/assign-reviewers").patch(authorController.AssignReviewerController);
-
 
 
 module.exports = router;

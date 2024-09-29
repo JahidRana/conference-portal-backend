@@ -4,7 +4,7 @@ const {
 
 exports.deleteAssignedReviewerController = async (req, res, next) => {
     const {email } = req.params;
-    console.log(email);
+   
     try {
         const contact = await DeleteAssignedReviewer({'email' : email});
         res.status(200).json({

@@ -79,7 +79,7 @@ exports.CreateAdminSigninController=async (req, res) => {
       
 
         if (!user) {
-            console.log("No user found with this email.");
+           
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
@@ -88,7 +88,7 @@ exports.CreateAdminSigninController=async (req, res) => {
       
 
         if (!isMatch) {
-            console.log("Passwords do not match.");
+        
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
