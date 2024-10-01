@@ -53,4 +53,15 @@ app.use('/api/v1/sign-in', signInRoute);//new-sign up route
 app.use('/api/v1', utilitiesRoute);
 app.use('/api/v1/track-chair/delete-assigned-reviewer', trackRoute);
 
+
+// Health check route to test if the API is running
+app.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "API is running successfully!",
+    });
+});
+
+
+
 module.exports = app;
