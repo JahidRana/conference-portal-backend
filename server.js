@@ -1,18 +1,19 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv").config();
-
 const colors = require("colors");
 
 const app = require("./app");
 
-// DBConnect();
+// Connect to the database
 mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log("Database connection established".red.bold))
-.catch(() => console.log("Database connection failed").red.bold);
-
+.then(() => console.log("Database connection established".green.bold))  // Changed to green for success
+.catch((err) => {
+  console.error("Database connection failed".red.bold);  // Added error logging to catch details
+  console.error(err);
+});
 
 
 // server
