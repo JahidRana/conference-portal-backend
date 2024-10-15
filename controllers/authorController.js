@@ -1,10 +1,23 @@
 const cloudinary = require('../config/cloudinaryConfig');
 const SubmissionGuideline=require("../models/sumissionForm.model")
 const authorSubmit=require("../models/authorSubmit.model")
-
+const nodemailer = require('nodemailer');
 const authorSubmitServices = require("../services/authorSubmit.services");
+const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
+    },
+  });
 
-exports.CreateAuthorSubmitController = async (req, res, next) => {
+  const getNextPaperID = async () => {
+    const lastPaper = await authorSubmit.findOne({}, {}, { sort: { paperID: -1 } }); // Get the last inserted document
+    return lastPaper ? lastPaper.paperID + 1 : 1; // Increment paperID, or set to 1 if no document exists
+  };
+  
+
+  exports.CreateAuthorSubmitController = async (req, res, next) => {
     try {
       // Check if a file is uploaded
       if (!req.file) {
@@ -14,10 +27,17 @@ exports.CreateAuthorSubmitController = async (req, res, next) => {
         });
       }
   
-      // Cloudinary upload
+      // Get the next serial paper ID
+      const paperID = await getNextPaperID();
+  
+      // Get the original file extension
+      const fileExtension = req.file.originalname.split('.').pop();
+  
+      // Cloudinary upload (upload using paperID with the original file extension)
       const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
-        resource_type: "raw", // for PDF and other non-image files
+        resource_type: "raw",
         folder: "submit-papers",
+        public_id: `${paperID}.${fileExtension}`, // Use paperID as file name
         use_filename: true,
         unique_filename: false,
         overwrite: true
@@ -26,47 +46,58 @@ exports.CreateAuthorSubmitController = async (req, res, next) => {
       // Prepare submission information
       const submitInformation = {
         ...req.body,
-        cloudinaryURL: cloudinaryResponse.secure_url, // URL of the uploaded file
-        cloudinaryPublicID: cloudinaryResponse.public_id // Public ID for future reference
+        cloudinaryURL: cloudinaryResponse.secure_url,
+        cloudinaryPublicID: cloudinaryResponse.public_id,
+        paperID // Save the paperID in the database
       };
   
-    
-        // Extract email from submitInformation
-    const email = submitInformation.author?.[0]?.email;
+      // Save submission to the database
+      const registeredInfo = await authorSubmitServices.createAuthorSubmitServices(submitInformation);
+  
+      // Send confirmation email
+      const email = submitInformation.author?.[0]?.email;
+      if (email) {
+        const mailOptions = {
+          from: `"Conference Portal" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: "Paper Submission Confirmation",
+          text: `Hello ${submitInformation.author[0].firstName} ${submitInformation.author[0].lastName},
+  
+  Thank you for submitting your paper titled "${submitInformation.title}". We have successfully received your submission with Paper ID: ${paperID}. You can track the status of your submission by logging into your account.
+  
+  Best regards,
+  Conference Portal Admin`
+        };
+  
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error('Error sending confirmation email:', error);
+          } else {
+            console.log('Confirmation email sent:', info.response);
+          }
+        });
+      }
+  
+      res.status(200).json({
+        status: "success",
+        message: "Submission completed successfully",
+        data: registeredInfo,
+      });
+    } catch (err) {
+      console.error('Error in CreateAuthorSubmitController:', err);
+      res.status(400).json({
+        status: "Fail",
+        message: "Submission failed",
+        error: {
+          message: err.message,
+          name: err.name,
+          http_code: err.status || 400,
+        },
+      });
+    }
+  };
 
 
-    // Check for existing record with the same email
-    // const existingRecord = await authorSubmit.findOne({ "author.email": email });
-
-
-    // if (existingRecord) {
-    //   return res.status(400).json({
-    //     status: "Fail",
-    //     message: "Duplicate entry found",
-    //   });
-    // }
-
-    // Save submission to the database
-    const registeredInfo = await authorSubmitServices.createAuthorSubmitServices(submitInformation);
-
-    res.status(200).json({
-      status: "success",
-      message: "Submission completed successfully",
-      data: registeredInfo,
-    });
-  } catch (err) {
-    console.error('Error in CreateAuthorSubmitController:', err);
-    res.status(400).json({
-      status: "Fail",
-      message: "Submission failed",
-      error: {
-        message: err.message,
-        name: err.name,
-        http_code: err.status || 400,
-      },
-    });
-  }
-};
 //GetResearchAreasController
 
 exports.GetResearchAreasController = async (req, res, next) => {

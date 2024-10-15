@@ -12,7 +12,11 @@ const AuthorSubmit = mongoose.Schema({
   keywords: String,
   cloudinaryURL: String, // New field for Cloudinary URL
   cloudinaryPublicID: String, // New field for Cloudinary Public ID
-  
+  paperID: {
+    type: Number,
+    unique: true, // Ensure that each paperID is unique
+    default: null // Allow null for existing documents
+  },  
   // Array of assigned reviewers, each having their own review info
   assignedReviewer: [
     {

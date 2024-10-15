@@ -115,6 +115,11 @@ router.route('/get-cutomize-domains').get(adminController.getcustomizeDomainCont
 router.route('/reject-paper').patch(adminController.rejectPaperController);
 router.route('/get-reviews-info/:paperId').get(adminController.getReviewsinfoController);
 
+
+//get-domain
+
+router.route('/get-domains').get(adminController.getDomainController);
+
 router.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');

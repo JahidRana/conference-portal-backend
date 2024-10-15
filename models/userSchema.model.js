@@ -6,19 +6,18 @@ const userSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
-    role: { type: String, required: true }, // Add this line for role
+    role: { type: String, required: true }, // Keeps track of the user role (e.g., reviewer, author)
     isVerified: { type: Boolean, default: false },
-    isApproved: { type: Boolean, default: false }, // New field
-    message: { type: String, default: null }, // Optional field
-    reviwerrequestStatus:{ type: String, default: null }, // New field
+    isApproved: { type: Boolean, default: false }, // Indicates whether the reviewer has been approved
+    message:{ type: String, default: null },//message
+    reviwerrequestStatus: { type: String, default: null }, // Status of reviewer request
+    domain1: { type: String, default: null }, // Selected domain 1 for reviewers
+    domain2: { type: String, default: null }, // Selected domain 2 for reviewers (optional)
+    domain3: { type: String, default: null }, // Selected domain 3 for reviewers (optional)
+    cvUrl: { type: String, default: null }, // Stores the URL/path of the uploaded CV
+}, {
+    timestamps: true // Automatically adds createdAt and updatedAt fields
 });
-
-// Hash password before saving
-// userSchema.pre('save', async function (next) {
-//     if (!this.isModified('password')) return next();
-//     this.password = await bcrypt.hash(this.password, 10);
-//     next();
-// });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

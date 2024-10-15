@@ -4,6 +4,7 @@ const multer = require('multer'); // Ensure multer is imported
 const reviewerController = require("../../controllers/reviewer.controller")
 const cloudinary = require('../../config/cloudinaryConfig');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const upload = require('../../config/multerConfig'); // Using multer memory storage configuration
 
 const reviewerStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -19,8 +20,8 @@ const reviewerUpload = multer({ storage: reviewerStorage });
 router.route("/check/:email").get(reviewerController.CheckStatusReviewer);
 router.route("/request").post(reviewerController.CreateReviewerController);
 
-router.route("/newrequest").post(reviewerController.createReviewerWithDifferentRoleController);
-
+router.post('/newrequest', upload.single('cv'),reviewerController.createReviewerWithDifferentRoleController);
+router.get('/check/:email', reviewerController.checkReviewerRequestStatus);
 
 router.route("/get-reviewer").post(reviewerController.GetReviewerController);
 router.route("/selected-reviewer").post(reviewerController.CreateSelectedReviewerController);
@@ -33,6 +34,8 @@ router.route("/reviewing/:id").patch(reviewerController.UploadingReviewControlle
 
 
 //update reviewers code by me
+router.route("/get-domain").get(reviewerController.getDomainController);
+
 
 router.route("/review-papers").get(reviewerController.reviewerReviewController);
 

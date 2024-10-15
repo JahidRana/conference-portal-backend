@@ -547,11 +547,9 @@ exports.GetRegistrationProcess=async (req, res) => {
 exports.getUnapprovedReviewers = async (req, res) => {
   try {
     const unapprovedReviewers = await User.find({
-      role: 'reviewer',
-      isVerified: true,
       isApproved: false,
-      reviwerrequestStatus: null, // Corrected field name
-    });
+      reviwerrequestStatus: "pending"
+  });
 
     res.status(200).json(unapprovedReviewers);
   } catch (error) {
@@ -568,6 +566,7 @@ exports.approveReviewer = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     user.isApproved = true;
+    user.reviwerrequestStatus="accepted";
     await user.save();
 
     res.status(200).json({ message: 'Approved successfully' });
@@ -666,7 +665,7 @@ exports.getRequestedReviewers = async (req, res) => {
   try {
       const requestedReviewers = await User.find({
           isApproved: false,
-          reviwerrequestStatus: "pending"
+          reviwerrequestStatus: "submitted"
       });
 
       res.json(requestedReviewers);
@@ -690,10 +689,6 @@ exports.acceptReviewerRequest = async (req, res) => {
       reviewerRequest.isApproved = true;
       
       await reviewerRequest.save();
-
-      // const user = await User.findById(userId);
-      // user.role = 'reviewer';
-      // await user.save();
 
       res.status(200).json({ message: 'Reviewer request accepted' });
   } catch (err) {
@@ -721,10 +716,16 @@ exports.rejectReviewerRequest = async (req, res) => {
   }
 };
 
-exports.getReviewers=async (req, res) => {
+exports.getReviewers = async (req, res) => {
   try {
-      // Find all users with role "reviewer", isVerified true, and isApproved true
-      const reviewers = await User.find({ role: 'reviewer', isVerified: true, isApproved: true }, 'firstName lastName email');
+      // Find all users with role "reviewer", isVerified true, isApproved true, and reviewerRequestStatus "accepted"
+      const reviewers = await User.find({ 
+          role: 'reviewer', 
+          isVerified: true, 
+          isApproved: true, 
+          reviwerrequestStatus: "accepted"  // corrected field name
+      });
+      
       if (reviewers.length === 0) {
           return res.status(404).json({ message: 'No reviewers found' });
       }
@@ -735,6 +736,7 @@ exports.getReviewers=async (req, res) => {
       res.status(500).json({ message: 'Error fetching reviewers', error });
   }
 };
+
 
 exports.customizeDomainController=async (req, res) => {
   try {
@@ -827,5 +829,15 @@ exports.getReviewsinfoController=async (req, res) => {
     res.json(reviewers);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+exports.getDomainController=async (req, res) => {
+  try {
+    // Fetch only the mainDomain field from each document
+    const domains = await Domain.find({}, "mainDomain");
+    res.status(200).json(domains);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to retrieve domains" });
   }
 };
