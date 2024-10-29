@@ -120,6 +120,24 @@ router.route('/get-reviews-info/:paperId').get(adminController.getReviewsinfoCon
 
 router.route('/get-domains').get(adminController.getDomainController);
 
+
+//venue route
+router.post('/add-venue', upload.single('image'), adminController.addVenue);
+router.get('/venues', adminController.getAllVenues);
+router.delete('/venues/:id', adminController.deleteVenue);
+// router.post('/add-accomodation', upload.single('image'), adminController.addAccommodation);
+
+router.get('/accomodations', adminController.getAccommodations);
+router.post('/add-accommodation',upload.single('image'), adminController.addAccommodation);
+router.delete('/remove-accommodation/:id', adminController.removeAccommodation); // Remove accommodation by ID
+
+
+
+router.get('/tourist-places', adminController.getTouristPlaces);
+router.post('/add-tourist',upload.single('image'), adminController.addTouristPlaces);
+router.delete('/tourist-places/:id', adminController.removeTourist); // Remove accommodation by ID
+
+
 router.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');

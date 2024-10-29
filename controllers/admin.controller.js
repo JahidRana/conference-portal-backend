@@ -1,5 +1,6 @@
 //admin.controller.js
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const adminServices = require("../services/admin.services");
@@ -14,6 +15,10 @@ const RegistrationProcess= require("../models/registrationProcess.model.js");
 const User =require("../models/userSchema.model");
 const Domain =require("../models/domainSchema .model")
 const AuthorSubmit=require("../models/authorSubmit.model.js");
+const Venue = require("../models/Venue.model.js");
+const Accommodation = require('../models/Accomodation.model.js');
+const TouristPlace = require('../models/TouristPlace.model.js'); // Adjust the path as needed
+
 
 
 exports.CreateAdminController = async (req, res, next) => {
@@ -39,52 +44,8 @@ exports.CreateAdminController = async (req, res, next) => {
     });
   }
 };
-//old -create-speaker
-// exports.createSpeakerController = async (req, res) => {
-//   try {
-//     // Check if the request includes a file (picture)
-//     if (!req.file) {
 
-//       return res.status(400).send({ message: "No picture uploaded" });
-//     }
-
-//     // Upload the picture to Cloudinary (folder already specified in CloudinaryStorage)
-//     const result = await cloudinary.uploader.upload(req.file.path);
-
-//     if (!result || !result.secure_url) {
-//         console.error("Failed to get Cloudinary URL");
-//         return res.status(500).json({ message: "Failed to upload picture to Cloudinary" });
-//       }
-
-//     // Construct the Cloudinary URL for the uploaded image
-//     const pictureUrl = result.secure_url;
-
-//     const imageId = result.public_id;
-
-//     // Create a new speaker instance and set its properties
-//     const speaker = new Speaker({
-//       title: req.body.title,
-//       name: req.body.name,
-//       position: req.body.position,
-//       university: req.body.university,
-//       abstract: req.body.abstract,
-//       website: req.body.website,
-//       picture: pictureUrl, // Add the Cloudinary URL to the speaker document
-//       imageId: imageId,
-//     });
-
-//     // Save the speaker to the database
-//     await speaker.save();
-
-//     // Send a success response
-//     res.status(201).json(speaker);
-//   } catch (error) {
-//     console.error("Error uploading picture to Cloudinary admin.controller:", error);
-//     res.status(500).json({ message: "Error uploading picture admin.controller" });
-//   }
-// };
-
-// //new -create-speaker
+ //new -create-speaker
 
 
 exports.createSpeakerController = async (req, res) => {
@@ -839,5 +800,229 @@ exports.getDomainController=async (req, res) => {
     res.status(200).json(domains);
   } catch (err) {
     res.status(500).json({ error: "Failed to retrieve domains" });
+  }
+};
+
+//venue controller
+
+exports.addVenue = async (req, res) => {
+  try {
+
+    if (!req.file) {
+   
+      return res.status(400).send({ message: 'No image uploaded' });
+    }
+
+
+    cloudinary.uploader.upload_stream(
+      { folder: 'venues', use_filename: true, unique_filename: true },
+      async (error, result) => {
+        if (error) {
+          console.error('Failed to upload image to Cloudinary:', error);
+          return res.status(500).json({ message: 'Failed to upload image', error });
+        }
+
+   
+        const venue = new Venue({
+          description: req.body.description,
+          imageUrl: result.secure_url, // Make sure this field is required in your schema
+          imageId: result.public_id,
+        });
+
+  
+        // Save the venue to the database
+        await venue.save();
+
+
+        res.status(201).json({ message: 'Venue details added successfully', venue });
+      }
+    ).end(req.file.buffer);
+  } catch (err) {
+    console.error('Error adding venue details:', err);
+    res.status(500).json({ message: 'Error adding venue details', error: err.message });
+  }
+};
+
+
+exports.getAllVenues = async (req, res) => {
+  try {
+    const venues = await Venue.find();
+    res.status(200).json(venues);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching venues', error: err.message });
+  }
+};
+
+exports.deleteVenue = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Venue.findByIdAndDelete(id);
+    res.status(200).json({ message: 'Venue removed successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting venue', error: err.message });
+  }
+};
+
+
+
+
+// Controller to handle adding accommodation
+
+exports.addAccommodation = async (req, res) => {
+  try {
+    // Check if the file was uploaded
+    if (!req.file) {
+      return res.status(400).send({ message: 'No image uploaded' });
+    }
+
+    // Upload the image to Cloudinary
+    cloudinary.uploader.upload_stream(
+      { folder: 'venues', use_filename: true, unique_filename: true },
+      async (error, result) => {
+        if (error) {
+          console.error('Failed to upload image to Cloudinary:', error);
+          return res.status(500).json({ message: 'Failed to upload image', error });
+        }
+
+        // Create a new accommodation document
+        const accommodation = new Accommodation({
+          title: req.body.title,
+          description: req.body.description,
+          imageUrl: result.secure_url, // URL of the uploaded image
+          imageId: result.public_id, // Public ID of the uploaded image
+        });
+
+        // Save the accommodation to the database
+        await accommodation.save();
+
+        res.status(201).json({ message: 'Accommodation added successfully!', accommodation });
+      }
+    ).end(req.file.buffer); // Ensure to pass the image buffer to the upload stream
+  } catch (err) {
+    console.error('Error adding accommodation details:', err);
+    res.status(500).json({ message: 'Error adding accommodation details', error: err.message });
+  }
+};
+
+
+exports.removeAccommodation = async (req, res) => {
+  const { id } = req.params; // Get the accommodation ID from the request parameters
+
+  try {
+    // Find the accommodation by ID
+    const accommodation = await Accommodation.findById(id);
+    if (!accommodation) {
+      return res.status(404).json({ message: 'Accommodation not found' });
+    }
+
+    // Remove the image from Cloudinary
+    await cloudinary.uploader.destroy(accommodation.imageId); // Use the imageId stored in the accommodation document
+
+    // Remove the accommodation from the database
+    await Accommodation.findByIdAndDelete(id);
+
+    return res.status(200).json({ message: 'Accommodation removed successfully' });
+  } catch (error) {
+    console.error('Error removing accommodation:', error);
+    return res.status(500).json({ message: 'Failed to remove accommodation', error: error.message });
+  }
+};
+
+exports.getAccommodations = async (req, res) => {
+  try {
+    // Fetch all accommodations from the database
+    const accommodations = await Accommodation.find();
+
+    // Send a response with the accommodations
+    return res.status(200).json({
+      message: 'Accommodations retrieved successfully',
+      accommodations,
+    });
+  } catch (error) {
+    console.error('Error fetching accommodations:', error);
+    return res.status(500).json({ message: 'Failed to retrieve accommodations' });
+  }
+};
+
+
+
+
+
+
+// Controller to handle adding tourist places
+exports.addTouristPlaces = async (req, res) => {
+  try {
+    // Check if the file was uploaded
+    if (!req.file) {
+      return res.status(400).send({ message: 'No image uploaded' });
+    }
+
+    // Upload the image to Cloudinary
+    cloudinary.uploader.upload_stream(
+      { folder: 'venues', use_filename: true, unique_filename: true },
+      async (error, result) => {
+        if (error) {
+          console.error('Failed to upload image to Cloudinary:', error);
+          return res.status(500).json({ message: 'Failed to upload image', error });
+        }
+
+        // Create a new tourist place document
+        const touristPlace = new TouristPlace({
+          title: req.body.title,
+          description: req.body.description,
+          imageUrl: result.secure_url, // URL of the uploaded image
+          imageId: result.public_id, // Public ID of the uploaded image
+        });
+
+        // Save the tourist place to the database
+        await touristPlace.save();
+
+        res.status(201).json({ message: 'Tourist place added successfully!', touristPlace });
+      }
+    ).end(req.file.buffer); // Ensure to pass the image buffer to the upload stream
+  } catch (err) {
+    console.error('Error adding tourist place details:', err);
+    res.status(500).json({ message: 'Error adding tourist place details', error: err.message });
+  }
+};
+
+// Controller to handle removing tourist places
+exports.removeTourist = async (req, res) => {
+  const { id } = req.params; // Get the tourist place ID from the request parameters
+
+  try {
+    // Find the tourist place by ID
+    const touristPlace = await TouristPlace.findById(id);
+    if (!touristPlace) {
+      return res.status(404).json({ message: 'Tourist place not found' });
+    }
+
+    // Remove the image from Cloudinary
+    await cloudinary.uploader.destroy(touristPlace.imageId); // Use the imageId stored in the tourist place document
+
+    // Remove the tourist place from the database
+    await TouristPlace.findByIdAndDelete(id);
+
+    return res.status(200).json({ message: 'Tourist place removed successfully' });
+  } catch (error) {
+    console.error('Error removing tourist place:', error);
+    return res.status(500).json({ message: 'Failed to remove tourist place', error: error.message });
+  }
+};
+
+// Controller to handle retrieving tourist places
+exports.getTouristPlaces = async (req, res) => {
+  try {
+    // Fetch all tourist places from the database
+    const touristPlaces = await TouristPlace.find();
+
+    // Send a response with the tourist places
+    return res.status(200).json({
+      message: 'Tourist places retrieved successfully',
+      touristPlaces,
+    });
+  } catch (error) {
+    console.error('Error fetching tourist places:', error);
+    return res.status(500).json({ message: 'Failed to retrieve tourist places' });
   }
 };
