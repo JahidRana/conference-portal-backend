@@ -23,6 +23,9 @@ router.route("/get-reviews-info").get(authorController.showAuthoReviewController
 
 
 router.get('/get-papers', authorController.GetAllPapersController);
+router.get('/get-paper/:id', authorController.GetSpecificPaperController);
+
+
 router.route("/accept-paper").patch(authorController.acceptPaperController);
 router.route("/unaccept-paper").patch(authorController.unacceptPaperController);
 router.route("/delete-paper").delete(authorController.deletePaperController);

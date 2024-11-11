@@ -249,6 +249,40 @@ exports.GetAllPapersController = async (req, res, next) => {
         });
     }
 };
+//get specific paper controller
+
+
+exports.GetSpecificPaperController = async (req, res, next) => {
+    try {
+        const { id } = req.params; // Get the paper ID from the request parameters
+
+        const paper = await authorSubmit.findById(id);
+
+        // Check if paper exists
+        if (!paper) {
+            return res.status(404).json({
+                status: "Fail",
+                message: "Paper not found",
+            });
+        }
+
+        // Return the paper details
+        res.status(200).json({
+            status: "success",
+            data: paper,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: "Fail",
+            message: "Failed to fetch paper details",
+            error: err,
+        });
+    }
+};
+
+
+
+
 
 // //acceptPaperController
 // exports.acceptPaperController = async (req, res) => {

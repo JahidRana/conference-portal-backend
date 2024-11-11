@@ -755,6 +755,7 @@ exports.rejectPaperController = async (req, res) => {
 
       // Update the status to 'Rejected'
       paper.status = 'Rejected';
+      paper.accepted=false;
       await paper.save();
 
       res.status(200).json({ message: 'Paper status updated to "Rejected"', data: paper });
